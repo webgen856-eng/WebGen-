@@ -30,6 +30,39 @@
   function setAutosave(text='Guardado'){const el=$('autosaveState');el.textContent=text;}
   function validHex(v){return /^#[0-9A-Fa-f]{6}$/.test(v);}
 
+  function publicSiteUrl(project=activeProject){
+    if(!project?.slug)return '';
+    try{
+      const target=new URL(config.PUBLIC_SITE_URL||'public.html',window.location.href);
+      target.searchParams.set('site',project.slug);
+      return target.href;
+    }catch{
+      return `public.html?site=${encodeURIComponent(project.slug)}`;
+    }
+  }
+  function renderPublicLink(){
+    const box=$('publicLinkBox'),input=$('publicLinkInput');
+    if(!box||!input)return;
+    const visible=!!activeProject?.published;
+    box.hidden=!visible;
+    input.value=visible?publicSiteUrl(activeProject):'';
+  }
+  async function copyPublicLink(){
+    const url=publicSiteUrl(activeProject);
+    if(!url)return;
+    try{
+      if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(url);}
+      else{
+        const input=$('publicLinkInput');input.focus();input.select();document.execCommand('copy');
+      }
+      showToast('Enlace copiado');
+    }catch{showToast('No se pudo copiar. Selecciona el enlace manualmente.');}
+  }
+  function openPublicPage(project=activeProject){
+    const url=publicSiteUrl(project);
+    if(url)window.open(url,'_blank','noopener');
+  }
+
   function storageKey(){return user?`${USER_STORAGE_PREFIX}${user.id}`:GUEST_STORAGE_KEY;}
   function getProjectsFromKey(key){try{return JSON.parse(localStorage.getItem(key)||'[]');}catch{return [];} }
   function setProjectsForKey(key,list){localStorage.setItem(key,JSON.stringify(list));}
@@ -120,7 +153,7 @@
   async function renderDashboard(){
     const list=await allProjects(),q=$('projectSearch').value.trim().toLowerCase(),filtered=list.filter(p=>(p.name+' '+p.category).toLowerCase().includes(q));
     $('projectCount').textContent=list.length;$('emptyProjects').hidden=list.length>0;
-    $('projectGrid').innerHTML=filtered.map(p=>`<article class="project-card" data-project-id="${escapeHtml(p.id)}"><div class="project-thumb" style="--pc1:${escapeHtml(p.primaryColor||'#2563eb')};--pc2:${escapeHtml(p.secondaryColor||'#0f172a')}"><span>${escapeHtml(templates[p.template]?.name||'Moderna')} · ${p.published?'PUBLICADA':'BORRADOR'}</span><strong>${escapeHtml(p.name||'Sin nombre')}</strong></div><div class="project-info"><div class="project-meta"><span>${escapeHtml(p.category||'Negocio')}</span><span>${formatDate(p.updatedAt)}</span></div><div class="project-actions"><button class="btn btn-primary" type="button" data-card-action="edit">Editar</button><button class="btn btn-ghost" type="button" data-card-action="duplicate" aria-label="Duplicar">⧉</button><button class="btn mini-danger" type="button" data-card-action="delete" aria-label="Eliminar">×</button></div></div></article>`).join('');
+    $('projectGrid').innerHTML=filtered.map(p=>`<article class="project-card" data-project-id="${escapeHtml(p.id)}"><div class="project-thumb" style="--pc1:${escapeHtml(p.primaryColor||'#2563eb')};--pc2:${escapeHtml(p.secondaryColor||'#0f172a')}"><span>${escapeHtml(templates[p.template]?.name||'Moderna')} · ${p.published?'PUBLICADA':'BORRADOR'}</span><strong>${escapeHtml(p.name||'Sin nombre')}</strong></div><div class="project-info"><div class="project-meta"><span>${escapeHtml(p.category||'Negocio')}</span><span>${formatDate(p.updatedAt)}</span></div><div class="project-actions"><button class="btn btn-primary" type="button" data-card-action="edit">Editar</button>${p.published?'<button class="btn btn-secondary" type="button" data-card-action="view">Ver</button>':''}<button class="btn btn-ghost" type="button" data-card-action="duplicate" aria-label="Duplicar">⧉</button><button class="btn mini-danger" type="button" data-card-action="delete" aria-label="Eliminar">×</button></div></div></article>`).join('');
     if(list.length>0&&filtered.length===0)$('projectGrid').innerHTML='<div class="empty-state" style="grid-column:1/-1"><h3>Sin resultados</h3><p>No hay proyectos que coincidan con la búsqueda.</p></div>';
   }
 
@@ -150,7 +183,7 @@
   }
 
   function renderPreview(){
-    if(!activeProject)return;$('preview').innerHTML=siteMarkup(activeProject);$('previewTemplateLabel').textContent=templates[activeProject.template]?.name||'Moderna';$('projectStatusText').textContent=activeProject.published?'Publicado':'Borrador guardado';
+    if(!activeProject)return;$('preview').innerHTML=siteMarkup(activeProject);$('previewTemplateLabel').textContent=templates[activeProject.template]?.name||'Moderna';$('projectStatusText').textContent=activeProject.published?'Publicado':'Borrador guardado';renderPublicLink();
   }
 
   function scheduleSave(){
@@ -184,9 +217,9 @@
     if(code==='42P01'||code==='PGRST205'||msg.includes('webgen_projects')&&msg.includes('schema cache')) return 'Falta crear la tabla de WebGen. Ejecuta supabase-schema.sql en Supabase > SQL Editor.';
     if(code==='42501'||msg.includes('row-level security')||msg.includes('permission denied')) return 'Supabase bloqueó el guardado por permisos. Vuelve a ejecutar supabase-schema.sql para aplicar RLS.';
     if(code==='23505'||msg.includes('duplicate key')) return 'Ese enlace público ya está ocupado. WebGen intentará asignar uno único.';
-    if(msg.includes('jwt')||msg.includes('not authenticated')) return 'Tu sesión de Supabase expiró. Cierra sesión y vuelve a iniciar.';
+    if(code==='AUTH_SESSION_MISSING'||msg.includes('jwt')||msg.includes('not authenticated')||msg.includes('sesión autenticada')) return 'Tu sesión de Supabase no está activa. Cierra sesión y vuelve a iniciar.';
     if(msg.includes('failed to fetch')||msg.includes('network')) return 'No se pudo conectar con Supabase. Revisa Internet y vuelve a intentar.';
-    return `Supabase: ${err?.message||'error desconocido'}`;
+    return `Supabase${code?` [${code}]`:''}: ${err?.message||'error desconocido'}`;
   }
 
   async function uniquePublishedSlug(project){
@@ -210,9 +243,23 @@
     if(!supabaseClient){showToast('Configura Supabase para publicar. El HTML sí se puede descargar.');showView('account');return;}
     if(!user){showToast('Inicia sesión para publicar.');showView('account');return;}
 
+    const publishBtn=$('publishBtn');
+    const oldBtnText=publishBtn.textContent;
+    publishBtn.disabled=true;
+    publishBtn.textContent='Publicando…';
     const previousPublished=!!activeProject.published;
     const previousSlug=activeProject.slug;
     try{
+      // Verifica la sesión directamente con Supabase antes de escribir.
+      const {data:authData,error:authError}=await supabaseClient.auth.getUser();
+      if(authError)throw authError;
+      if(!authData?.user){
+        const sessionErr=new Error('No hay una sesión autenticada activa. Cierra sesión y vuelve a iniciar.');
+        sessionErr.code='AUTH_SESSION_MISSING';
+        throw sessionErr;
+      }
+      user=authData.user;
+
       const checked=await uniquePublishedSlug(activeProject);
       activeProject.slug=checked.slug;
       $('slug').value=activeProject.slug;
@@ -222,8 +269,8 @@
       await saveCloud(activeProject);
       renderPreview();
       await renderDashboard();
-      if(checked.changed)showToast(`Ese enlace ya existía. Publicado como ${activeProject.slug}`);
-      else showToast(`Publicado como ${activeProject.slug}`);
+      if(checked.changed)showToast(`Publicado como ${activeProject.slug}. Ya puedes abrir el enlace público.`);
+      else showToast('Página publicada. Usa “Ver página” o “Copiar enlace”.');
     }catch(err){
       console.error('Error al publicar en Supabase:',err);
       activeProject.published=previousPublished;
@@ -233,6 +280,9 @@
       upsertLocalProject(activeProject);
       renderPreview();
       showToast(supabaseErrorMessage(err));
+    }finally{
+      publishBtn.disabled=false;
+      publishBtn.textContent=oldBtnText;
     }
   }
 
@@ -262,7 +312,7 @@
   $('menuBtn').addEventListener('click',()=>$('sidebar').classList.add('open'));$('mobileClose').addEventListener('click',()=>$('sidebar').classList.remove('open'));
   $('projectSearch').addEventListener('input',renderDashboard);
 
-  $('projectGrid').addEventListener('click',async e=>{const card=e.target.closest('[data-project-id]'),btn=e.target.closest('[data-card-action]');if(!card||!btn)return;const list=await allProjects(),p=list.find(x=>x.id===card.dataset.projectId);if(!p)return;if(btn.dataset.cardAction==='edit')openProject(p);if(btn.dataset.cardAction==='duplicate')duplicateProject(p);if(btn.dataset.cardAction==='delete'){if(!confirm(`¿Eliminar "${p.name}"?`))return;deleteLocalProject(p.id);await deleteCloud(p.id);renderDashboard();showToast('Proyecto eliminado');}});
+  $('projectGrid').addEventListener('click',async e=>{const card=e.target.closest('[data-project-id]'),btn=e.target.closest('[data-card-action]');if(!card||!btn)return;const list=await allProjects(),p=list.find(x=>x.id===card.dataset.projectId);if(!p)return;if(btn.dataset.cardAction==='edit')openProject(p);if(btn.dataset.cardAction==='view')openPublicPage(p);if(btn.dataset.cardAction==='duplicate')duplicateProject(p);if(btn.dataset.cardAction==='delete'){if(!confirm(`¿Eliminar "${p.name}"?`))return;deleteLocalProject(p.id);await deleteCloud(p.id);renderDashboard();showToast('Proyecto eliminado');}});
 
   ['businessName','tagline','description','category','slug','primaryColor','secondaryColor','phone','instagram','facebook','location','ctaText'].forEach(id=>syncField(id,id==='businessName'?'name':id));
   $('slug').addEventListener('blur',()=>{activeProject.slug=slugify($('slug').value);$('slug').value=activeProject.slug;renderPreview();scheduleSave();});
@@ -280,7 +330,7 @@
   $('logoInput').addEventListener('change',()=>handleImage('logoInput','logo'));$('heroImageInput').addEventListener('change',()=>handleImage('heroImageInput','heroImage'));
   $('removeLogo').addEventListener('click',()=>{activeProject.logo='';renderUploads();renderPreview();scheduleSave();});$('removeHeroImage').addEventListener('click',()=>{activeProject.heroImage='';renderUploads();renderPreview();scheduleSave();});
 
-  $('exportBtn').addEventListener('click',exportHtml);$('publishBtn').addEventListener('click',publishProject);$('duplicateBtn').addEventListener('click',()=>duplicateProject(activeProject));
+  $('exportBtn').addEventListener('click',exportHtml);$('publishBtn').addEventListener('click',publishProject);$('duplicateBtn').addEventListener('click',()=>duplicateProject(activeProject));$('viewPublicBtn').addEventListener('click',()=>openPublicPage());$('copyPublicBtn').addEventListener('click',copyPublicLink);
   $('loginBtn').addEventListener('click',()=>login(false));$('signupBtn').addEventListener('click',()=>login(true));$('logoutBtn').addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut();user=null;updateAuthUI();showToast('Sesión cerrada');});
 
   async function boot(){

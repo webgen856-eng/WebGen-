@@ -53,3 +53,31 @@ CORRECCIÓN DE PUBLICACIÓN
 - Si un slug ya está ocupado, WebGen agrega automáticamente un sufijo único.
 - Si Supabase falla, ahora muestra la causa real (tabla faltante, RLS, sesión, red, etc.).
 - Un intento fallido ya no deja el proyecto marcado falsamente como publicado.
+
+
+VERSIÓN 2.2 / CACHE FIX
+- Los archivos CSS, config y JS llevan versión en la URL para evitar que el navegador reutilice código viejo.
+- En Mi cuenta debe aparecer: WebGen LG 2.2 · diagnóstico de publicación activo.
+- Si no aparece esa línea, fuerza recarga con Ctrl+Shift+R o abre la nueva carpeta con Live Server.
+
+
+VERSIÓN 2.3 / PUBLICACIÓN WEB
+----------------------------
+- Después de publicar aparece un enlace público dentro del editor.
+- “Ver página” abre el sitio publicado.
+- “Copiar enlace” copia el enlace para compartir.
+- El enlace se calcula automáticamente según el dominio donde esté WebGen.
+- En localhost será un enlace local. En GitHub Pages será un enlace real de Internet.
+
+PUBLICAR WEBGEN EN GITHUB PAGES
+--------------------------------
+1. Crea un repositorio llamado webgen-lg.
+2. Sube TODOS los archivos de esta carpeta a la raíz del repositorio.
+3. En GitHub abre Settings > Pages.
+4. En Build and deployment selecciona Deploy from a branch.
+5. Branch: main. Carpeta: /(root). Guarda.
+6. Espera a que GitHub muestre la dirección pública.
+7. Abre esa dirección y prueba WebGen.
+8. En Supabase > Authentication > URL Configuration agrega la dirección de GitHub Pages como Site URL/Redirect URL si usarás registro por correo desde producción.
+
+Una vez alojado, NO tienes que cambiar PUBLIC_SITE_URL: “public.html” funciona de forma relativa y el botón copiará el dominio real automáticamente.

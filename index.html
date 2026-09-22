@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b1220" />
   <title>WebGen LG | Crea páginas para negocios</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20260922-3" />
 </head>
 <body>
   <div class="app-shell">
@@ -132,6 +132,10 @@
               <div class="publish-bar">
                 <div><span class="kicker">PROYECTO</span><strong id="projectStatusText">Borrador guardado</strong></div>
                 <div class="publish-actions"><button id="duplicateBtn" class="btn btn-ghost" type="button">Duplicar</button><button id="exportBtn" class="btn btn-secondary" type="button">Descargar HTML</button><button id="publishBtn" class="btn btn-primary" type="button">Publicar</button></div>
+                <div id="publicLinkBox" class="public-link-box" hidden>
+                  <div class="public-link-info"><span class="kicker">ENLACE PÚBLICO</span><input id="publicLinkInput" type="text" readonly aria-label="Enlace público de la página" /></div>
+                  <div class="public-link-actions"><button id="viewPublicBtn" class="btn btn-primary" type="button">Ver página</button><button id="copyPublicBtn" class="btn btn-ghost" type="button">Copiar enlace</button></div>
+                </div>
               </div>
             </section>
           </div>
@@ -155,6 +159,7 @@
               <span class="kicker">CONFIGURACIÓN</span><h2>Estado de Supabase</h2>
               <div class="connection-row"><span id="supabaseDot" class="connection-dot"></span><div><strong id="supabaseStatus">No configurado</strong><p id="supabaseStatusText">La plataforma está usando almacenamiento local.</p></div></div>
               <p class="helper">La conexión ya está preparada. Ejecuta <code>supabase-schema.sql</code> una sola vez en Supabase → SQL Editor para crear la tabla y sus reglas de seguridad.</p>
+              <p class="helper"><strong>Versión:</strong> WebGen LG 2.3 · publicación web lista</p>
             </div>
           </div>
         </section>
@@ -164,8 +169,8 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="config.js"></script>
+  <script src="config.js?v=20260922-3"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
+  <script src="script.js?v=20260922-3"></script>
 </body>
 </html>
