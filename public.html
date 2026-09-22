@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WebGen LG | Sitio publicado</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>body{background:#fff}.public-state{min-height:70vh;display:grid;place-items:center;padding:30px;text-align:center}.public-state div{max-width:560px}.public-state h1{font-size:40px;margin:0 0 10px}.public-state p{color:#667085;line-height:1.6}</style>
+</head>
+<body>
+  <main id="publicRoot"><div class="public-state"><div><h1>Cargando página…</h1><p>WebGen LG está buscando el sitio publicado.</p></div></div></main>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (()=>{const root=document.getElementById('publicRoot'),cfg=window.WEBGEN_CONFIG||{};const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));const initials=n=>String(n||'LG').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();function markup(p){const logo=p.logo?`style="background-image:url('${esc(p.logo)}')"`:'',hero=p.heroImage?`style="background-image:url('${esc(p.heroImage)}')"`:'';const phone=p.phone?`https://wa.me/${p.phone.replace(/\D/g,'')}`:'#';return `<div class="generated-site ${esc(p.template||'modern')}" style="--p:${esc(p.primaryColor||'#2563eb')};--s:${esc(p.secondaryColor||'#0f172a')}"><nav class="gs-nav"><div class="gs-brand"><div class="gs-logo" ${logo}>${p.logo?'':esc(initials(p.name))}</div><strong>${esc(p.name)}</strong></div><a href="${esc(phone)}">Contacto</a></nav><section class="gs-hero"><div class="gs-copy"><span class="gs-tag">${esc(p.category)}</span><h1>${esc(p.tagline)}</h1><p>${esc(p.description)}</p><div class="gs-actions"><a class="primary" href="#servicios">${esc(p.ctaText||'Contáctanos')}</a><a class="secondary" href="${esc(phone)}">${esc(p.phone||'WhatsApp')}</a></div></div><div class="gs-visual ${p.heroImage?'has-image':''}" ${hero}><div class="gs-visual-card"><small>${esc(p.location||'')}</small><strong>${esc(p.name)}</strong><small>${esc(p.instagram||'')}</small></div></div></section><section class="gs-services" id="servicios"><div class="gs-services-head"><h2>Lo que ofrecemos</h2><p>Productos y servicios</p></div><div class="gs-cards">${(p.items||[]).map((it,i)=>`<article class="gs-card"><div class="num">${String(i+1).padStart(2,'0')}</div><h3>${esc(it.title)}</h3><p>${esc(it.text)}</p>${it.price?`<span class="price">${esc(it.price)}</span>`:''}</article>`).join('')}</div></section><footer class="gs-footer"><strong>${esc(p.name)}</strong><span>${esc([p.phone,p.instagram,p.location].filter(Boolean).join(' · '))}</span></footer></div>`}async function run(){const slug=new URLSearchParams(location.search).get('site');if(!slug){root.innerHTML='<div class="public-state"><div><h1>Falta el sitio</h1><p>Abre esta página usando <strong>?site=nombre-del-negocio</strong>.</p></div></div>';return;}if(!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY||!window.supabase){root.innerHTML='<div class="public-state"><div><h1>Publicación no configurada</h1><p>Configura Supabase en <strong>config.js</strong>.</p></div></div>';return;}const client=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);const {data,error}=await client.from('webgen_projects').select('site_data,name').eq('slug',slug).eq('is_published',true).maybeSingle();if(error||!data){root.innerHTML='<div class="public-state"><div><h1>Sitio no encontrado</h1><p>Este slug no existe o todavía no está publicado.</p></div></div>';return;}document.title=data.name||'Sitio';root.innerHTML=markup(data.site_data);}run();})();
+  </script>
+</body>
+</html>

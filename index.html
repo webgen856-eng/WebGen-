@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>WebGen LG | Crea páginas para negocios</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" aria-label="WebGen LG">
+        <span class="brand-mark">LG</span>
+        <span><strong>WebGen LG</strong><small>Website Builder</small></span>
+      </a>
+
+      <nav class="side-nav" aria-label="Navegación principal">
+        <button class="nav-item active" type="button" data-view="dashboard"><span>▦</span> Mis proyectos</button>
+        <button class="nav-item" type="button" data-action="new-project"><span>＋</span> Crear página</button>
+        <button class="nav-item" type="button" data-view="account"><span>◎</span> Mi cuenta</button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="mode-card">
+          <span class="status-dot"></span>
+          <div><strong id="storageMode">Modo local</strong><small id="storageModeText">Tus cambios se guardan en este navegador.</small></div>
+        </div>
+        <button id="mobileClose" class="icon-btn mobile-only" type="button" aria-label="Cerrar menú">×</button>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="menuBtn" class="icon-btn mobile-only" type="button" aria-label="Abrir menú">☰</button>
+          <div>
+            <h1 id="pageTitle">Mis proyectos</h1>
+            <p id="pageSubtitle">Crea, edita y exporta páginas para cualquier negocio.</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="autosave" id="autosaveState">Guardado</span>
+          <button class="btn btn-primary" type="button" data-action="new-project">+ Nueva página</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section id="dashboardView" class="view active">
+          <div class="hero-banner">
+            <div>
+              <span class="kicker">CREADOR WEB SIN CÓDIGO</span>
+              <h2>Convierte una idea de negocio en una página lista para publicar.</h2>
+              <p>Elige una plantilla, cambia colores, agrega servicios o productos y exporta el resultado.</p>
+              <button class="btn btn-light" type="button" data-action="new-project">Crear mi primera página</button>
+            </div>
+            <div class="hero-metric"><strong id="projectCount">0</strong><span>proyectos guardados</span></div>
+          </div>
+
+          <div class="section-head">
+            <div><span class="kicker">PROYECTOS</span><h3>Tus páginas</h3></div>
+            <div class="search-wrap"><input id="projectSearch" type="search" placeholder="Buscar proyecto..." aria-label="Buscar proyecto" /></div>
+          </div>
+          <div id="projectGrid" class="project-grid"></div>
+          <div id="emptyProjects" class="empty-state" hidden>
+            <div class="empty-icon">✦</div><h3>Todavía no tienes páginas</h3><p>Crea un proyecto y WebGen LG guardará automáticamente tus cambios.</p>
+            <button class="btn btn-primary" type="button" data-action="new-project">Crear página</button>
+          </div>
+        </section>
+
+        <section id="editorView" class="view">
+          <div class="editor-layout">
+            <section class="editor-panel">
+              <div class="editor-head">
+                <div><span class="kicker">EDITOR</span><h2 id="editorProjectTitle">Nueva página</h2></div>
+                <button id="backDashboard" class="btn btn-ghost" type="button">← Proyectos</button>
+              </div>
+
+              <div class="step-tabs" role="tablist" aria-label="Secciones del editor">
+                <button class="step-tab active" type="button" data-editor-tab="design">Diseño</button>
+                <button class="step-tab" type="button" data-editor-tab="content">Contenido</button>
+                <button class="step-tab" type="button" data-editor-tab="contact">Contacto</button>
+              </div>
+
+              <div class="editor-tab active" data-editor-panel="design">
+                <div class="form-section">
+                  <div class="field full"><label for="businessName">Nombre del negocio</label><input id="businessName" type="text" maxlength="60" placeholder="Ej. Nova Studio" /></div>
+                  <div class="field full"><label for="tagline">Título principal</label><input id="tagline" type="text" maxlength="100" placeholder="Tu idea, mejor presentada" /></div>
+                  <div class="field full"><label for="description">Descripción</label><textarea id="description" rows="4" maxlength="320" placeholder="Describe tu negocio..."></textarea></div>
+                  <div class="field"><label for="category">Categoría</label><select id="category"><option>Tienda</option><option>Tecnología</option><option>Restaurante</option><option>Taller</option><option>Servicios</option><option>Belleza</option><option>Mecánica</option><option>Educación</option><option>Otro</option></select></div>
+                  <div class="field"><label for="slug">Dirección / slug</label><input id="slug" type="text" maxlength="60" placeholder="mi-negocio" /></div>
+                </div>
+
+                <div class="form-section">
+                  <div class="section-mini"><div><span class="kicker">PLANTILLAS</span><h3>Estilo visual</h3></div></div>
+                  <div id="templatePicker" class="template-picker"></div>
+                </div>
+
+                <div class="form-section two-col">
+                  <div class="field"><label for="primaryColor">Color principal</label><div class="color-input"><input id="primaryColor" type="color" /><input id="primaryHex" type="text" maxlength="7" /></div></div>
+                  <div class="field"><label for="secondaryColor">Color oscuro</label><div class="color-input"><input id="secondaryColor" type="color" /><input id="secondaryHex" type="text" maxlength="7" /></div></div>
+                </div>
+
+                <div class="form-section two-col">
+                  <div class="upload-card"><span class="kicker">LOGO</span><div id="logoPreview" class="upload-preview logo-preview">LG</div><label class="btn btn-ghost file-btn">Subir logo<input id="logoInput" type="file" accept="image/*" /></label><button id="removeLogo" class="text-btn" type="button">Quitar</button></div>
+                  <div class="upload-card"><span class="kicker">PORTADA</span><div id="heroImagePreview" class="upload-preview hero-image-preview">Sin imagen</div><label class="btn btn-ghost file-btn">Subir imagen<input id="heroImageInput" type="file" accept="image/*" /></label><button id="removeHeroImage" class="text-btn" type="button">Quitar</button></div>
+                </div>
+              </div>
+
+              <div class="editor-tab" data-editor-panel="content">
+                <div class="section-mini"><div><span class="kicker">SERVICIOS / PRODUCTOS</span><h3>Lo que ofrece el negocio</h3></div><button id="addItemBtn" class="btn btn-secondary" type="button">+ Agregar</button></div>
+                <div id="itemsEditor" class="items-editor"></div>
+              </div>
+
+              <div class="editor-tab" data-editor-panel="contact">
+                <div class="form-section">
+                  <div class="field full"><label for="phone">WhatsApp / teléfono</label><input id="phone" type="text" maxlength="30" placeholder="+502 5555 5555" /></div>
+                  <div class="field full"><label for="instagram">Instagram</label><input id="instagram" type="text" maxlength="80" placeholder="@tunegocio" /></div>
+                  <div class="field full"><label for="facebook">Facebook</label><input id="facebook" type="text" maxlength="120" placeholder="facebook.com/tunegocio" /></div>
+                  <div class="field full"><label for="location">Ubicación</label><input id="location" type="text" maxlength="100" placeholder="Guatemala" /></div>
+                  <div class="field full"><label for="ctaText">Texto del botón principal</label><input id="ctaText" type="text" maxlength="35" placeholder="Contáctanos" /></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="preview-panel">
+              <div class="preview-toolbar">
+                <div><strong>Vista previa</strong><span id="previewTemplateLabel">Moderna</span></div>
+                <div class="device-switch"><button class="device-btn active" type="button" data-device="desktop">PC</button><button class="device-btn" type="button" data-device="mobile">Celular</button></div>
+              </div>
+              <div id="previewShell" class="preview-shell desktop"><div id="preview" class="site-preview"></div></div>
+              <div class="publish-bar">
+                <div><span class="kicker">PROYECTO</span><strong id="projectStatusText">Borrador guardado</strong></div>
+                <div class="publish-actions"><button id="duplicateBtn" class="btn btn-ghost" type="button">Duplicar</button><button id="exportBtn" class="btn btn-secondary" type="button">Descargar HTML</button><button id="publishBtn" class="btn btn-primary" type="button">Publicar</button></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="accountView" class="view">
+          <div class="account-grid">
+            <div class="account-card">
+              <span class="kicker">CUENTA</span><h2>Sincroniza tus proyectos</h2>
+              <p>WebGen LG funciona sin cuenta. Al conectar Supabase podrás iniciar sesión, guardar proyectos en la nube y publicar páginas mediante un slug.</p>
+              <div id="authLoggedOut">
+                <div class="field"><label for="authEmail">Correo</label><input id="authEmail" type="email" placeholder="correo@ejemplo.com" /></div>
+                <div class="field"><label for="authPassword">Contraseña</label><input id="authPassword" type="password" minlength="6" placeholder="Mínimo 6 caracteres" /></div>
+                <div class="auth-actions"><button id="loginBtn" class="btn btn-primary" type="button">Iniciar sesión</button><button id="signupBtn" class="btn btn-secondary" type="button">Crear cuenta</button></div>
+              </div>
+              <div id="authLoggedIn" hidden><div class="signed-user"><span class="avatar">✓</span><div><strong id="userEmail">Usuario</strong><small>Sesión conectada a Supabase</small></div></div><button id="logoutBtn" class="btn btn-ghost" type="button">Cerrar sesión</button></div>
+              <p id="authStatus" class="helper" aria-live="polite"></p>
+            </div>
+
+            <div class="account-card">
+              <span class="kicker">CONFIGURACIÓN</span><h2>Estado de Supabase</h2>
+              <div class="connection-row"><span id="supabaseDot" class="connection-dot"></span><div><strong id="supabaseStatus">No configurado</strong><p id="supabaseStatusText">La plataforma está usando almacenamiento local.</p></div></div>
+              <p class="helper">La conexión ya está preparada. Ejecuta <code>supabase-schema.sql</code> una sola vez en Supabase → SQL Editor para crear la tabla y sus reglas de seguridad.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>
