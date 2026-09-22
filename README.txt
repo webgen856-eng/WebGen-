@@ -47,3 +47,9 @@ ARCHIVOS
 - config.js: URL y publishable key.
 - public.html: renderizador de páginas publicadas.
 - supabase-schema.sql: tabla, permisos, índices y políticas RLS.
+
+
+CORRECCIÓN DE PUBLICACIÓN
+- Si un slug ya está ocupado, WebGen agrega automáticamente un sufijo único.
+- Si Supabase falla, ahora muestra la causa real (tabla faltante, RLS, sesión, red, etc.).
+- Un intento fallido ya no deja el proyecto marcado falsamente como publicado.

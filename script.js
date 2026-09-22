@@ -178,12 +178,62 @@
     const blob=new Blob([generatedDocument(activeProject)],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${slugify(activeProject.name)}.html`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);showToast('Página HTML descargada');
   }
 
+  function supabaseErrorMessage(err){
+    const code=err?.code||'';
+    const msg=String(err?.message||'').toLowerCase();
+    if(code==='42P01'||code==='PGRST205'||msg.includes('webgen_projects')&&msg.includes('schema cache')) return 'Falta crear la tabla de WebGen. Ejecuta supabase-schema.sql en Supabase > SQL Editor.';
+    if(code==='42501'||msg.includes('row-level security')||msg.includes('permission denied')) return 'Supabase bloqueó el guardado por permisos. Vuelve a ejecutar supabase-schema.sql para aplicar RLS.';
+    if(code==='23505'||msg.includes('duplicate key')) return 'Ese enlace público ya está ocupado. WebGen intentará asignar uno único.';
+    if(msg.includes('jwt')||msg.includes('not authenticated')) return 'Tu sesión de Supabase expiró. Cierra sesión y vuelve a iniciar.';
+    if(msg.includes('failed to fetch')||msg.includes('network')) return 'No se pudo conectar con Supabase. Revisa Internet y vuelve a intentar.';
+    return `Supabase: ${err?.message||'error desconocido'}`;
+  }
+
+  async function uniquePublishedSlug(project){
+    const base=slugify(project.slug||project.name)||'sitio';
+    let candidate=base;
+    for(let i=0;i<5;i++){
+      let q=supabaseClient.from('webgen_projects').select('id').eq('slug',candidate).eq('is_published',true).limit(1);
+      if(project.id)q=q.neq('id',project.id);
+      const {data,error}=await q;
+      if(error)throw error;
+      if(!data?.length)return {slug:candidate,changed:candidate!==base};
+      const compactId=String(project.id||Date.now()).replace(/-/g,'').slice(0,6).toLowerCase();
+      candidate=`${base}-${compactId}${i?'-'+(i+1):''}`;
+    }
+    return {slug:`${base}-${Date.now().toString(36).slice(-6)}`,changed:true};
+  }
+
   async function publishProject(){
-    if(!activeProject)return;activeProject.slug=slugify(activeProject.slug||activeProject.name);$('slug').value=activeProject.slug;
+    if(!activeProject)return;
+    activeProject.slug=slugify(activeProject.slug||activeProject.name);$('slug').value=activeProject.slug;
     if(!supabaseClient){showToast('Configura Supabase para publicar. El HTML sí se puede descargar.');showView('account');return;}
     if(!user){showToast('Inicia sesión para publicar.');showView('account');return;}
-    activeProject.published=true;activeProject.updatedAt=new Date().toISOString();upsertLocalProject(activeProject);
-    try{await saveCloud(activeProject);renderPreview();showToast(`Publicado como ${activeProject.slug}`);}catch(err){console.error(err);activeProject.published=false;showToast('No se pudo publicar. Revisa Supabase.');}
+
+    const previousPublished=!!activeProject.published;
+    const previousSlug=activeProject.slug;
+    try{
+      const checked=await uniquePublishedSlug(activeProject);
+      activeProject.slug=checked.slug;
+      $('slug').value=activeProject.slug;
+      activeProject.published=true;
+      activeProject.updatedAt=new Date().toISOString();
+      upsertLocalProject(activeProject);
+      await saveCloud(activeProject);
+      renderPreview();
+      await renderDashboard();
+      if(checked.changed)showToast(`Ese enlace ya existía. Publicado como ${activeProject.slug}`);
+      else showToast(`Publicado como ${activeProject.slug}`);
+    }catch(err){
+      console.error('Error al publicar en Supabase:',err);
+      activeProject.published=previousPublished;
+      activeProject.slug=previousSlug;
+      $('slug').value=activeProject.slug;
+      activeProject.updatedAt=new Date().toISOString();
+      upsertLocalProject(activeProject);
+      renderPreview();
+      showToast(supabaseErrorMessage(err));
+    }
   }
 
   async function login(signup=false){
